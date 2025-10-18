@@ -1,4 +1,4 @@
-export default function IngredientsList({ingredients, removeIngredient, getRecipe, refProp}) {
+export default function IngredientsList({ingredients, removeIngredient, getRecipe, refProp, loading}) {
   const ingredientsArray = ingredients.map((ingredient, index) => (
     <li key={`${ingredient}-${index}`}>
       {ingredient}
@@ -25,7 +25,7 @@ export default function IngredientsList({ingredients, removeIngredient, getRecip
               <h3>Ready for a recipe?</h3>
               <p>Generate a recipe from your list of ingredients</p>
             </div>
-            <button type="button" className="get-recipe" onClick={getRecipe}>
+            <button type="button" className={loading ? "get-recipe generating" : "get-recipe"} onClick={getRecipe}>
               Get a Recipe
             </button>
           </div>

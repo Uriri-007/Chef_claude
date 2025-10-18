@@ -4,48 +4,58 @@ import IngredientsList from "./ingredient-list.jsx";
 import { generateRecipeFromMistral } from "../ai.js";
 
 export default function Main() {
-  const [ingredients, setIngredient] = useState([]);
-  const [recipe, setRecipe] = useState(null);
-  const recipeSection = useRef(null);
+    const [ingredients, setIngredient] = useState([]);
+    const [recipe, setRecipe] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const recipeSection = useRef(null);
 
-  function addIngredient(formData) {
-    const newIngredient = formData.get("ingredient");
-    if (!newIngredient.trim()) {
-      alert("Ingredient cannot be a white space")
-      return
+    function addIngredient(formData) {
+        const newIngredient = formData.get("ingredient");
+        if (!newIngredient.trim()) {
+            alert("Ingredient cannot be a white space");
+            return;
+        }
+        setIngredient(prevIngredient => [...prevIngredient, newIngredient]);
     }
-    setIngredient((prevIngredient) => [...prevIngredient, newIngredient]);
-  }
 
-  function removeIngredient(myIngredient, myIndex) {
-    setIngredient((prevIngredient) =>
-      prevIngredient.filter(
-        (ingredient, index) => myIngredient !== ingredient && myIndex !== index
-      )
+    function removeIngredient(myIngredient, myIndex) {
+        setIngredient(prevIngredient =>
+            prevIngredient.filter(
+                (ingredient, index) =>
+                    myIngredient !== ingredient && myIndex !== index
+            )
+        );
+    }
+
+    async function getRecipe() {
+        setIsLoading(prev => !prev);
+        const recipe = await generateRecipeFromMistral(ingredients);
+        setRecipe(recipe);
+        setIsLoading(false);
+    }
+
+    useEffect(() => {
+        if (recipe && recipeSection.current) {
+            recipeSection.current.scrollIntoView({ behavior: "smooth" });
+        }
+    }, [recipe]);
+
+    return (
+        <>
+            <form action={addIngredient}>
+                <input name="ingredient" type="text" placeholder="e.g egusi" />
+                <button type="submit">+ Add Ingredient</button>
+            </form>
+
+            <IngredientsList
+                ingredients={ingredients}
+                removeIngredient={removeIngredient}
+                getRecipe={getRecipe}
+                refProp={recipeSection}
+                loading={isLoading}
+            />
+
+            {recipe && <ClaudeRecipe recipe={recipe} />}
+        </>
     );
-  }
-
- async function getRecipe() {
-    const recipe = await generateRecipeFromMistral(ingredients)
-    setRecipe(recipe)
-  }
-
-  useEffect(() => {
-  if(recipe && recipeSection.current) {
-    recipeSection.current.scrollIntoView({ behavior: "smooth" });
-  }   
-  }, [recipe])
-  
-  return (
-    <>
-      <form action={addIngredient}>
-        <input name="ingredient" type="search" placeholder="e.g egusi" />
-        <button type="submit">+ Add Ingredient</button>
-      </form>
-
-      <IngredientsList ingredients={ingredients}removeIngredient={removeIngredient} getRecipe={getRecipe} refProp={recipeSection} />
-
-      {recipe && <ClaudeRecipe recipe={recipe} />}
-    </>
-  );
 }
